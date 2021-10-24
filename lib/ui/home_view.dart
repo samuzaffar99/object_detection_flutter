@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:object_detection/tflite/recognition.dart';
 import 'package:object_detection/tflite/stats.dart';
@@ -28,6 +27,7 @@ class _HomeViewState extends State<HomeView> {
     return Scaffold(
       key: scaffoldKey,
       backgroundColor: Colors.black,
+      appBar: AppBar(title: Text('Object Detection Flutter')),
       body: Stack(
         children: <Widget>[
           // Camera View
@@ -35,23 +35,6 @@ class _HomeViewState extends State<HomeView> {
 
           // Bounding boxes
           boundingBoxes(results),
-
-          // Heading
-          Align(
-            alignment: Alignment.topLeft,
-            child: Container(
-              padding: EdgeInsets.only(top: 20),
-              child: Text(
-                'Object Detection Flutter',
-                textAlign: TextAlign.left,
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.deepOrangeAccent.withOpacity(0.6),
-                ),
-              ),
-            ),
-          ),
 
           // Bottom Sheet
           Align(
