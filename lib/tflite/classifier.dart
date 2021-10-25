@@ -21,10 +21,10 @@ class Classifier {
   static const String LABEL_FILE_NAME = "ssd_mobilenetv2.txt";
 
   /// Input size of image (height = width = 300)
-  static const int INPUT_SIZE = 300;
+  static const int INPUT_SIZE = 320;
 
   /// Result score threshold
-  static const double THRESHOLD = 0.8;
+  static const double THRESHOLD = 0.6;
 
   /// [ImageProcessor] used to pre-process the image
   ImageProcessor imageProcessor;
@@ -52,13 +52,13 @@ class Classifier {
   /// Loads interpreter from asset
   void loadModel({Interpreter interpreter}) async {
     try {
-      print("try load interpreter");
+      // print("try load interpreter");
       _interpreter = interpreter ??
           await Interpreter.fromAsset(
             MODEL_FILE_NAME,
             options: InterpreterOptions()..threads = 4..useFlexDelegateAndroid = true,
           );
-      print("loaded interpreter");
+      // print("loaded interpreter");
       var outputTensors = _interpreter.getOutputTensors();
       _outputShapes = [];
       _outputTypes = [];
@@ -113,36 +113,51 @@ class Classifier {
 
     var preProcessElapsedTime =
         DateTime.now().millisecondsSinceEpoch - preProcessStart;
-
     // TensorBuffers for output tensors
     TensorBuffer outputLocations = TensorBufferFloat(_outputShapes[0]);
+    // TensorBuffer outputClassScores = TensorBufferFloat(_outputShapes[7]);
     TensorBuffer outputClasses = TensorBufferFloat(_outputShapes[1]);
     TensorBuffer outputScores = TensorBufferFloat(_outputShapes[2]);
     TensorBuffer numLocations = TensorBufferFloat(_outputShapes[3]);
 
+    // print(outputLocations.shape);
+    // // print(outputClassScores.shape);
+    // print(outputClasses.shape);
+    // print(outputScores.shape);
+    // print(numLocations.shape);
+    // print(_interpreter.getInputTensors());
+    // print(_interpreter.getOutputTensors());
     // Inputs object for runForMultipleInputs
     // Use [TensorImage.buffer] or [TensorBuffer.buffer] to pass by reference
+
     List<Object> inputs = [inputImage.buffer];
 
     // Outputs map
     Map<int, Object> outputs = {
-      0: outputLocations.buffer,
+      // 6: outputLocations.buffer,
+      // 7: outputClassScores.buffer,
+      3: numLocations.buffer,
       1: outputClasses.buffer,
       2: outputScores.buffer,
-      3: numLocations.buffer,
+      0: outputLocations.buffer,
     };
 
     var inferenceTimeStart = DateTime.now().millisecondsSinceEpoch;
+    // print(inputs);
+    // print(outputs);
 
+    // print(inputImage.tensorBuffer);
+
+    // print("check1");
     // run inference
     _interpreter.runForMultipleInputs(inputs, outputs);
-
+    // print("pass");
     var inferenceTimeElapsed =
         DateTime.now().millisecondsSinceEpoch - inferenceTimeStart;
 
     // Maximum number of results to show
     int resultsCount = min(NUM_RESULTS, numLocations.getIntValue(0));
-
+    // int resultsCount = NUM_RESULTS;
     // Using labelOffset = 1 as ??? at index 0
     int labelOffset = 1;
 
@@ -156,15 +171,23 @@ class Classifier {
       height: INPUT_SIZE,
       width: INPUT_SIZE,
     );
-
+    // print("converted bounding boxes");
     List<Recognition> recognitions = [];
 
     for (int i = 0; i < resultsCount; i++) {
       // Prediction score
       var score = outputScores.getDoubleValue(i);
+      // List<double> scoreList = (outputClassScores.getDoubleList().reshape([12804,13]))[i].cast<double>();
+      // print(scoreList.length);
+      // print(scoreList);
+      // print(scoreList.runtimeType);
 
-      // Label string
+      // double score = scoreList.reduce(max);
+      print(score);
+
+    // Label string
       var labelIndex = outputClasses.getIntValue(i) + labelOffset;
+    //   var labelIndex = scoreList.indexOf(score);
       var label = _labels.elementAt(labelIndex);
 
       if (score > THRESHOLD) {
