@@ -76,6 +76,7 @@ class Classifier {
     try {
       _labels =
           labels ?? await FileUtil.loadLabels("assets/" + LABEL_FILE_NAME);
+      print(_labels);
     } catch (e) {
       print("Error while loading labels: $e");
     }
@@ -136,10 +137,10 @@ class Classifier {
     Map<int, Object> outputs = {
       // 6: outputLocations.buffer,
       // 7: outputClassScores.buffer,
-      3: numLocations.buffer,
+      0: outputLocations.buffer,
       1: outputClasses.buffer,
       2: outputScores.buffer,
-      0: outputLocations.buffer,
+      3: numLocations.buffer,
     };
 
     var inferenceTimeStart = DateTime.now().millisecondsSinceEpoch;
@@ -159,7 +160,7 @@ class Classifier {
     int resultsCount = min(NUM_RESULTS, numLocations.getIntValue(0));
     // int resultsCount = NUM_RESULTS;
     // Using labelOffset = 1 as ??? at index 0
-    int labelOffset = 1;
+    int labelOffset = -1;
 
     // Using bounding box utils for easy conversion of tensorbuffer to List<Rect>
     List<Rect> locations = BoundingBoxUtils.convert(
@@ -187,9 +188,10 @@ class Classifier {
 
     // Label string
       var labelIndex = outputClasses.getIntValue(i) + labelOffset;
+      print(labelIndex);
     //   var labelIndex = scoreList.indexOf(score);
       var label = _labels.elementAt(labelIndex);
-
+      print(label);
       if (score > THRESHOLD) {
         // inverse of rect
         // [locations] corresponds to the image size 300 X 300

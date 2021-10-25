@@ -98,7 +98,6 @@ class _CameraViewState extends State<CameraView> with WidgetsBindingObserver {
         child: Text("No Camera"),
       );
     }
-    print("no");
     return AspectRatio(
         aspectRatio: cameraController.value.aspectRatio,
         child: CameraPreview(cameraController));
