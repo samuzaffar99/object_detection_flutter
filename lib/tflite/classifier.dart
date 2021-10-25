@@ -2,7 +2,7 @@ import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:image/image.dart' as imageLib;
+import 'package:image/image.dart' as image_lib;
 import 'package:object_detection/tflite/recognition.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:tflite_flutter_helper/tflite_flutter_helper.dart';
@@ -56,16 +56,18 @@ class Classifier {
       _interpreter = interpreter ??
           await Interpreter.fromAsset(
             MODEL_FILE_NAME,
-            options: InterpreterOptions()..threads = 4..useFlexDelegateAndroid = true,
+            options: InterpreterOptions()
+              ..threads = 4
+              ..useFlexDelegateAndroid = true,
           );
       // print("loaded interpreter");
       var outputTensors = _interpreter.getOutputTensors();
       _outputShapes = [];
       _outputTypes = [];
-      outputTensors.forEach((tensor) {
+      for (var tensor in outputTensors) {
         _outputShapes.add(tensor.shape);
         _outputTypes.add(tensor.type);
-      });
+      }
     } catch (e) {
       print("Error while creating interpreter: $e");
     }
@@ -76,7 +78,7 @@ class Classifier {
     try {
       _labels =
           labels ?? await FileUtil.loadLabels("assets/" + LABEL_FILE_NAME);
-      print(_labels);
+      // print(_labels);
     } catch (e) {
       print("Error while loading labels: $e");
     }
@@ -85,18 +87,16 @@ class Classifier {
   /// Pre-process the image
   TensorImage getProcessedImage(TensorImage inputImage) {
     padSize = max(inputImage.height, inputImage.width);
-    if (imageProcessor == null) {
-      imageProcessor = ImageProcessorBuilder()
-          .add(ResizeWithCropOrPadOp(padSize, padSize))
-          .add(ResizeOp(INPUT_SIZE, INPUT_SIZE, ResizeMethod.BILINEAR))
-          .build();
-    }
+    imageProcessor ??= ImageProcessorBuilder()
+        .add(ResizeWithCropOrPadOp(padSize, padSize))
+        .add(ResizeOp(INPUT_SIZE, INPUT_SIZE, ResizeMethod.BILINEAR))
+        .build();
     inputImage = imageProcessor.process(inputImage);
     return inputImage;
   }
 
   /// Runs object detection on the input image
-  Map<String, dynamic> predict(imageLib.Image image) {
+  Map<String, dynamic> predict(image_lib.Image image) {
     var predictStartTime = DateTime.now().millisecondsSinceEpoch;
 
     if (_interpreter == null) {
@@ -186,10 +186,10 @@ class Classifier {
       // double score = scoreList.reduce(max);
       print(score);
 
-    // Label string
+      // Label string
       var labelIndex = outputClasses.getIntValue(i) + labelOffset;
       print(labelIndex);
-    //   var labelIndex = scoreList.indexOf(score);
+      //   var labelIndex = scoreList.indexOf(score);
       var label = _labels.elementAt(labelIndex);
       print(label);
       if (score > THRESHOLD) {

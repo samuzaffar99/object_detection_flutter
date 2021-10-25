@@ -8,6 +8,8 @@ import 'camera_view.dart';
 
 /// [HomeView] stacks [CameraView] and [BoxWidget]s with bottom sheet for stats
 class HomeView extends StatefulWidget {
+  const HomeView({Key key}) : super(key: key);
+
   @override
   _HomeViewState createState() => _HomeViewState();
 }
@@ -27,7 +29,7 @@ class _HomeViewState extends State<HomeView> {
     return Scaffold(
       key: scaffoldKey,
       backgroundColor: Colors.black,
-      appBar: AppBar(title: Text('Object Detection Flutter')),
+      appBar: AppBar(title: const Text('Object Detection Flutter')),
       body: Stack(
         children: <Widget>[
           // Camera View
@@ -54,7 +56,7 @@ class _HomeViewState extends State<HomeView> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.keyboard_arrow_up,
+                        const Icon(Icons.keyboard_arrow_up,
                             size: 48, color: Colors.orange),
                         (stats != null)
                             ? Padding(
@@ -123,7 +125,7 @@ class StatsRow extends StatelessWidget {
   final String left;
   final String right;
 
-  StatsRow(this.left, this.right);
+  const StatsRow(this.left, this.right, {Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

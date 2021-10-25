@@ -24,7 +24,7 @@ class BoxWidget extends StatelessWidget {
         height: result.renderLocation.height,
         decoration: BoxDecoration(
             border: Border.all(color: color, width: 3),
-            borderRadius: BorderRadius.all(Radius.circular(2))),
+            borderRadius: const BorderRadius.all(Radius.circular(2))),
         child: Align(
           alignment: Alignment.topLeft,
           child: FittedBox(

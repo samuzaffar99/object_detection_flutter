@@ -17,7 +17,8 @@ class CameraView extends StatefulWidget {
   final Function(Stats stats) statsCallback;
 
   /// Constructor
-  const CameraView(this.resultsCallback, this.statsCallback);
+  const CameraView(this.resultsCallback, this.statsCallback, {Key key})
+      : super(key: key);
 
   @override
   _CameraViewState createState() => _CameraViewState();
@@ -66,9 +67,12 @@ class _CameraViewState extends State<CameraView> with WidgetsBindingObserver {
   void initializeCamera() async {
     cameras = await availableCameras();
     // cameras[0] for rear-camera
-    cameraController =
-        CameraController(cameras[1], ResolutionPreset.high, enableAudio: false);
+
+    cameraController = CameraController(cameras[0], ResolutionPreset.medium,
+        enableAudio: false);
+    // await Future.delayed(const Duration(milliseconds : 200));
     cameraController.initialize().then((_) async {
+      await Future.delayed(const Duration(milliseconds: 200));
       // Stream of image passed to [onLatestImageAvailable] callback
       await cameraController.startImageStream(onLatestImageAvailable);
 
@@ -95,7 +99,7 @@ class _CameraViewState extends State<CameraView> with WidgetsBindingObserver {
       print("yes");
       return Container(
         color: Colors.blue,
-        child: Text("No Camera"),
+        child: const Text("No Camera"),
       );
     }
     return AspectRatio(
