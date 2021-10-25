@@ -2,7 +2,11 @@ buildscript {
     ext.kotlin_version = '1.5.31'
     repositories {
         google()
-        jcenter()
+        mavenCentral()
+//        maven {         // add this repo to use snapshots
+//            name 'ossrh-snapshot'
+//            url 'https://oss.sonatype.org/content/repositories/snapshots'
+//        }
     }
 
     dependencies {
@@ -14,7 +18,11 @@ buildscript {
 allprojects {
     repositories {
         google()
-        jcenter()
+        mavenCentral()
+//        maven {         // add this repo to use snapshots
+//            name 'ossrh-snapshot'
+//            url 'https://oss.sonatype.org/content/repositories/snapshots'
+//        }
     }
 }
 
