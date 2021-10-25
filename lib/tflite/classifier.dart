@@ -17,14 +17,14 @@ class Classifier {
   /// Labels file loaded as list
   List<String> _labels;
 
-  static const String MODEL_FILE_NAME = "detect.tflite";
-  static const String LABEL_FILE_NAME = "labelmap.txt";
+  static const String MODEL_FILE_NAME = "ssd_mobilenetv2.tflite";
+  static const String LABEL_FILE_NAME = "ssd_mobilenetv2.txt";
 
   /// Input size of image (height = width = 300)
   static const int INPUT_SIZE = 300;
 
   /// Result score threshold
-  static const double THRESHOLD = 0.5;
+  static const double THRESHOLD = 0.8;
 
   /// [ImageProcessor] used to pre-process the image
   ImageProcessor imageProcessor;
@@ -52,12 +52,13 @@ class Classifier {
   /// Loads interpreter from asset
   void loadModel({Interpreter interpreter}) async {
     try {
+      print("try load interpreter");
       _interpreter = interpreter ??
           await Interpreter.fromAsset(
             MODEL_FILE_NAME,
-            options: InterpreterOptions()..threads = 4,
+            options: InterpreterOptions()..threads = 4..useFlexDelegateAndroid = true,
           );
-
+      print("loaded interpreter");
       var outputTensors = _interpreter.getOutputTensors();
       _outputShapes = [];
       _outputTypes = [];

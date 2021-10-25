@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:isolate';
 
 import 'package:camera/camera.dart';
@@ -65,11 +64,9 @@ class _CameraViewState extends State<CameraView> with WidgetsBindingObserver {
   /// Initializes the camera by setting [cameraController]
   void initializeCamera() async {
     cameras = await availableCameras();
-
     // cameras[0] for rear-camera
     cameraController =
-        CameraController(cameras[0], ResolutionPreset.low, enableAudio: false);
-
+        CameraController(cameras[1], ResolutionPreset.low, enableAudio: false);
     cameraController.initialize().then((_) async {
       // Stream of image passed to [onLatestImageAvailable] callback
       await cameraController.startImageStream(onLatestImageAvailable);
@@ -94,9 +91,13 @@ class _CameraViewState extends State<CameraView> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     // Return empty container while the camera is not initialized
     if (cameraController == null || !cameraController.value.isInitialized) {
-      return Container();
+      print("yes");
+      return Container(
+        color: Colors.blue,
+        child: Text("No Camera"),
+      );
     }
-
+    print("no");
     return AspectRatio(
         aspectRatio: cameraController.value.aspectRatio,
         child: CameraPreview(cameraController));
