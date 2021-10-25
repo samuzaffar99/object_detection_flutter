@@ -71,6 +71,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.15.0"
+  convert:
+    dependency: transitive
+    description:
+      name: convert
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.0.1"
   cross_file:
     dependency: transitive
     description:
@@ -332,10 +339,12 @@ packages:
   tflite_flutter:
     dependency: "direct main"
     description:
-      name: tflite_flutter
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.9.0"
+      path: "."
+      ref: HEAD
+      resolved-ref: f6ee54d7e6335a012d6cd4f05ef83448b94a474c
+      url: "git://github.com/cpoohee/tflite_flutter_plugin"
+    source: git
+    version: "0.8.0"
   tflite_flutter_helper:
     dependency: "direct main"
     description:

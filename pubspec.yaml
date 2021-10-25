@@ -26,14 +26,22 @@ dependencies:
 
 
   camera: ^0.9.0
-  tflite_flutter: ^0.9.0
+#  tflite_flutter: ^0.9.0
 #  tflite_flutter_helper: ^0.3.0
+  tflite_flutter:
+    git:
+      url: git://github.com/cpoohee/tflite_flutter_plugin
   tflite_flutter_helper:
     git:
       url: git://github.com/Puspharaj/tflite_flutter_helper
   image: ^3.0.8
   path_provider: ^2.0.5
   image_picker: ^0.8.4+3
+
+dependency_overrides:
+  tflite_flutter:
+    git:
+      url: git://github.com/cpoohee/tflite_flutter_plugin
 
 dev_dependencies:
   flutter_test:
