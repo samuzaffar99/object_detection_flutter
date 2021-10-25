@@ -18,6 +18,7 @@ class CameraView extends StatefulWidget {
 
   /// Constructor
   const CameraView(this.resultsCallback, this.statsCallback);
+
   @override
   _CameraViewState createState() => _CameraViewState();
 }

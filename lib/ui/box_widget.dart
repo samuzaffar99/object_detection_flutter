@@ -6,6 +6,7 @@ class BoxWidget extends StatelessWidget {
   final Recognition result;
 
   const BoxWidget({Key key, this.result}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     // Color for bounding box
