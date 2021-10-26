@@ -14,56 +14,56 @@ import 'stats.dart';
 /// Classifier
 class Classifier {
   /// Instance of Interpreter
-  Interpreter _interpreter;
+  Interpreter? _interpreter;
 
   /// Labels file loaded as list
-  List<String> _labels;
+  List<String>? _labels;
 
-  static const String MODEL_FILE_NAME = "ssd_mobilenetv2.tflite";
-  static const String LABEL_FILE_NAME = "ssd_mobilenetv2.txt";
+  static const String modelFileName = "ssd_mobilenetv2.tflite";
+  static const String labelFileName = "ssd_mobilenetv2.txt";
 
   /// Input size of image (height = width = 300)
-  static const int INPUT_SIZE = 320;
+  static const int inputSize = 320;
 
   /// Result score threshold
-  static const double THRESHOLD = 0.35;
+  static const double threshold = 0.35;
 
   /// [ImageProcessor] used to pre-process the image
-  ImageProcessor imageProcessor;
+  ImageProcessor? imageProcessor;
 
   /// Padding the image to transform into square
-  int padSize;
+  int? padSize;
 
   /// Shapes of output tensors
-  List<List<int>> _outputShapes;
+  List<List<int>> _outputShapes = [];
 
   /// Types of output tensors
-  List<TfLiteType> _outputTypes;
+  List<TfLiteType> _outputTypes = [];
 
   /// Number of results to show
-  static const int NUM_RESULTS = 10;
+  static const int numResults = 10;
 
   Classifier({
-    Interpreter interpreter,
-    List<String> labels,
+    Interpreter? interpreter,
+    List<String>? labels,
   }) {
     loadModel(interpreter: interpreter);
     loadLabels(labels: labels);
   }
 
   /// Loads interpreter from asset
-  void loadModel({Interpreter interpreter}) async {
+  void loadModel({Interpreter? interpreter}) async {
     try {
       // print("try load interpreter");
       _interpreter = interpreter ??
           await Interpreter.fromAsset(
-            MODEL_FILE_NAME,
+            modelFileName,
             options: InterpreterOptions()
               ..threads = 4
               ..useFlexDelegateAndroid = true,
           );
       // print("loaded interpreter");
-      var outputTensors = _interpreter.getOutputTensors();
+      var outputTensors = _interpreter!.getOutputTensors();
       _outputShapes = [];
       _outputTypes = [];
       for (var tensor in outputTensors) {
@@ -77,22 +77,21 @@ class Classifier {
 
   Future<void> loadClasses() async {
     String data = await rootBundle.loadString('assets/classes.txt');
-    _classes = LineSplitter.split(data).toList();
-    print(_classes);
+    _filterClasses = LineSplitter.split(data).toList();
+    print(_filterClasses);
     return;
   }
 
-  List<String> _classes;
+  List<String>? _filterClasses;
 
   /// Loads labels from assets
-  void loadLabels({List<String> labels}) async {
+  void loadLabels({List<String>? labels}) async {
     try {
-      _labels =
-          labels ?? await FileUtil.loadLabels("assets/" + LABEL_FILE_NAME);
+      _labels = labels ?? await FileUtil.loadLabels("assets/" + labelFileName);
       await loadClasses();
-      for (int i = 0; i < _labels.length; i++) {
-        if (!_classes.contains(_labels[i])) {
-          _labels[i] = "?";
+      for (int i = 0; i < _labels!.length; i++) {
+        if (!_filterClasses!.contains(_labels![i])) {
+          _labels![i] = "?";
         }
       }
     } catch (e) {
@@ -104,15 +103,15 @@ class Classifier {
   TensorImage getProcessedImage(TensorImage inputImage) {
     padSize = max(inputImage.height, inputImage.width);
     imageProcessor ??= ImageProcessorBuilder()
-        .add(ResizeWithCropOrPadOp(padSize, padSize))
-        .add(ResizeOp(INPUT_SIZE, INPUT_SIZE, ResizeMethod.BILINEAR))
+        .add(ResizeWithCropOrPadOp(padSize!, padSize!))
+        .add(ResizeOp(inputSize, inputSize, ResizeMethod.BILINEAR))
         .build();
-    inputImage = imageProcessor.process(inputImage);
+    inputImage = imageProcessor!.process(inputImage);
     return inputImage;
   }
 
   /// Runs object detection on the input image
-  Map<String, dynamic> predict(image_lib.Image image) {
+  Map<String, dynamic>? predict(image_lib.Image image) {
     var predictStartTime = DateTime.now().millisecondsSinceEpoch;
 
     if (_interpreter == null) {
@@ -164,13 +163,13 @@ class Classifier {
 
     // print("check1");
     // run inference
-    _interpreter.runForMultipleInputs(inputs, outputs);
+    _interpreter!.runForMultipleInputs(inputs, outputs);
     // print("pass");
     var inferenceTimeElapsed =
         DateTime.now().millisecondsSinceEpoch - inferenceTimeStart;
 
     // Maximum number of results to show
-    int resultsCount = min(NUM_RESULTS, numLocations.getIntValue(0));
+    int resultsCount = min(numResults, numLocations.getIntValue(0));
     // int resultsCount = NUM_RESULTS;
     // int resultsCount = numLocations.getIntValue(0);
     print(resultsCount);
@@ -185,8 +184,8 @@ class Classifier {
       boundingBoxAxis: 2,
       boundingBoxType: BoundingBoxType.BOUNDARIES,
       coordinateType: CoordinateType.RATIO,
-      height: INPUT_SIZE,
-      width: INPUT_SIZE,
+      height: inputSize,
+      width: inputSize,
     );
     // print("converted bounding boxes");
     List<Recognition> recognitions = [];
@@ -195,20 +194,20 @@ class Classifier {
       // Prediction score
       var score = outputScores.getDoubleValue(i);
 
-      if (score > THRESHOLD) {
+      if (score > threshold) {
         print(score);
         // Label string
         var labelIndex = outputClasses.getIntValue(i) + labelOffset;
         print(labelIndex);
 
-        var label = _labels.elementAt(labelIndex);
+        var label = _labels!.elementAt(labelIndex);
         print(label);
         if (label != "?") {
           // inverse of rect
           // [locations] corresponds to the image size 300 X 300
           // inverseTransformRect transforms it our [inputImage]
-          Rect transformedRect = imageProcessor.inverseTransformRect(
-              locations[i], image.height, image.width);
+          Rect transformedRect = imageProcessor!
+              .inverseTransformRect(locations[i], image.height, image.width);
 
           recognitions.add(
             Recognition(i, label, score, transformedRect),
@@ -230,8 +229,8 @@ class Classifier {
   }
 
   /// Gets the interpreter instance
-  Interpreter get interpreter => _interpreter;
+  Interpreter? get interpreter => _interpreter;
 
   /// Gets the loaded labels
-  List<String> get labels => _labels;
+  List<String>? get labels => _labels;
 }

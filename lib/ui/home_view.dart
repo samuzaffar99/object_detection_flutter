@@ -8,7 +8,7 @@ import 'camera_view.dart';
 
 /// [HomeView] stacks [CameraView] and [BoxWidget]s with bottom sheet for stats
 class HomeView extends StatefulWidget {
-  const HomeView({Key key}) : super(key: key);
+  const HomeView({Key? key}) : super(key: key);
 
   @override
   _HomeViewState createState() => _HomeViewState();
@@ -16,10 +16,10 @@ class HomeView extends StatefulWidget {
 
 class _HomeViewState extends State<HomeView> {
   /// Results to draw bounding boxes
-  List<Recognition> results;
+  List<Recognition>? results;
 
   /// Realtime stats
-  Stats stats;
+  Stats? stats;
 
   /// Scaffold Key
   GlobalKey<ScaffoldState> scaffoldKey = GlobalKey();
@@ -49,7 +49,7 @@ class _HomeViewState extends State<HomeView> {
                 width: double.maxFinite,
                 decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.9),
-                    borderRadius: BORDER_RADIUS_BOTTOM_SHEET),
+                    borderRadius: borderRadiusBottomSheet),
                 child: SingleChildScrollView(
                   controller: scrollController,
                   child: Center(
@@ -64,11 +64,11 @@ class _HomeViewState extends State<HomeView> {
                                 child: Column(
                                   children: [
                                     StatsRow('Inference time:',
-                                        '${stats.inferenceTime} ms'),
+                                        '${stats!.inferenceTime} ms'),
                                     StatsRow('Total prediction time:',
-                                        '${stats.totalElapsedTime} ms'),
+                                        '${stats!.totalElapsedTime} ms'),
                                     StatsRow('Pre-processing time:',
-                                        '${stats.preProcessingTime} ms'),
+                                        '${stats!.preProcessingTime} ms'),
                                     StatsRow('Frame',
                                         '${CameraViewSingleton.inputImageSize?.width} X ${CameraViewSingleton.inputImageSize?.height}'),
                                   ],
@@ -88,7 +88,7 @@ class _HomeViewState extends State<HomeView> {
   }
 
   /// Returns Stack of bounding boxes
-  Widget boundingBoxes(List<Recognition> results) {
+  Widget boundingBoxes(List<Recognition>? results) {
     if (results == null) {
       return Container();
     }
@@ -115,9 +115,9 @@ class _HomeViewState extends State<HomeView> {
     });
   }
 
-  static const BOTTOM_SHEET_RADIUS = Radius.circular(24.0);
-  static const BORDER_RADIUS_BOTTOM_SHEET = BorderRadius.only(
-      topLeft: BOTTOM_SHEET_RADIUS, topRight: BOTTOM_SHEET_RADIUS);
+  static const bottomSheetRadius = Radius.circular(24.0);
+  static const borderRadiusBottomSheet = BorderRadius.only(
+      topLeft: bottomSheetRadius, topRight: bottomSheetRadius);
 }
 
 /// Row for one Stats field
@@ -125,7 +125,7 @@ class StatsRow extends StatelessWidget {
   final String left;
   final String right;
 
-  const StatsRow(this.left, this.right, {Key key}) : super(key: key);
+  const StatsRow(this.left, this.right, {Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

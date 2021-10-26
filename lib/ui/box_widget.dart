@@ -5,7 +5,7 @@ import 'package:object_detection/tflite/recognition.dart';
 class BoxWidget extends StatelessWidget {
   final Recognition result;
 
-  const BoxWidget({Key key, this.result}) : super(key: key);
+  const BoxWidget({Key? key, required this.result}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

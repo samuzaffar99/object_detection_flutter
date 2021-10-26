@@ -17,7 +17,7 @@ class CameraView extends StatefulWidget {
   final Function(Stats stats) statsCallback;
 
   /// Constructor
-  const CameraView(this.resultsCallback, this.statsCallback, {Key key})
+  const CameraView(this.resultsCallback, this.statsCallback, {Key? key})
       : super(key: key);
 
   @override
@@ -26,19 +26,19 @@ class CameraView extends StatefulWidget {
 
 class _CameraViewState extends State<CameraView> with WidgetsBindingObserver {
   /// List of available cameras
-  List<CameraDescription> cameras;
+  List<CameraDescription>? cameras;
 
   /// Controller
-  CameraController cameraController;
+  CameraController? cameraController;
 
   /// true when inference is ongoing
-  bool predicting;
+  bool predicting = false;
 
   /// Instance of [Classifier]
-  Classifier classifier;
+  late Classifier classifier;
 
   /// Instance of [IsolateUtils]
-  IsolateUtils isolateUtils;
+  late IsolateUtils isolateUtils;
 
   @override
   void initState() {
@@ -47,7 +47,7 @@ class _CameraViewState extends State<CameraView> with WidgetsBindingObserver {
   }
 
   void initStateAsync() async {
-    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance!.addObserver(this);
 
     // Spawn a new isolate
     isolateUtils = IsolateUtils();
@@ -58,9 +58,6 @@ class _CameraViewState extends State<CameraView> with WidgetsBindingObserver {
     print("rebuild state");
     // Create an instance of classifier to load model and labels
     classifier = Classifier();
-
-    // Initially predicting = false
-    predicting = false;
   }
 
   /// Initializes the camera by setting [cameraController]
@@ -68,18 +65,18 @@ class _CameraViewState extends State<CameraView> with WidgetsBindingObserver {
     cameras = await availableCameras();
     // cameras[0] for rear-camera
 
-    cameraController =
-        CameraController(cameras[0], ResolutionPreset.high, enableAudio: false);
+    cameraController = CameraController(cameras![0], ResolutionPreset.high,
+        enableAudio: false);
 
-    cameraController.initialize().then((_) async {
+    cameraController!.initialize().then((_) async {
       await Future.delayed(const Duration(milliseconds: 200));
       // Stream of image passed to [onLatestImageAvailable] callback
-      await cameraController.startImageStream(onLatestImageAvailable);
+      await cameraController!.startImageStream(onLatestImageAvailable);
 
       /// previewSize is size of each image frame captured by controller
       ///
       /// 352x288 on iOS, 240p (320x240) on Android with ResolutionPreset.low
-      Size previewSize = cameraController.value.previewSize;
+      Size previewSize = cameraController!.value.previewSize!;
 
       /// previewSize is size of raw input image to the model
       CameraViewSingleton.inputImageSize = previewSize;
@@ -95,14 +92,14 @@ class _CameraViewState extends State<CameraView> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     // Return empty container while the camera is not initialized
-    if (cameraController == null || !cameraController.value.isInitialized) {
+    if (cameraController == null || !cameraController!.value.isInitialized) {
       print("yes");
       return Container(
         color: Colors.blue,
         child: const Text("No Camera"),
       );
     }
-    return CameraPreview(cameraController);
+    return CameraPreview(cameraController!);
   }
 
   /// Callback to receive each frame [CameraImage] perform inference on it
@@ -121,7 +118,7 @@ class _CameraViewState extends State<CameraView> with WidgetsBindingObserver {
 
       // Data to be passed to inference isolate
       var isolateData = IsolateData(
-          cameraImage, classifier.interpreter.address, classifier.labels);
+          cameraImage, classifier.interpreter!.address, classifier.labels!);
 
       // We could have simply used the compute method as well however
       // it would be as in-efficient as we need to continuously passing data
@@ -150,7 +147,7 @@ class _CameraViewState extends State<CameraView> with WidgetsBindingObserver {
   /// Runs inference in another isolate
   Future<Map<String, dynamic>> inference(IsolateData isolateData) async {
     ReceivePort responsePort = ReceivePort();
-    isolateUtils.sendPort
+    isolateUtils.sendPort!
         .send(isolateData..responsePort = responsePort.sendPort);
     var results = await responsePort.first;
     return results;
@@ -160,11 +157,11 @@ class _CameraViewState extends State<CameraView> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) async {
     switch (state) {
       case AppLifecycleState.paused:
-        cameraController.stopImageStream();
+        cameraController?.stopImageStream();
         break;
       case AppLifecycleState.resumed:
-        if (!cameraController.value.isStreamingImages) {
-          await cameraController.startImageStream(onLatestImageAvailable);
+        if (!cameraController!.value.isStreamingImages) {
+          await cameraController!.startImageStream(onLatestImageAvailable);
         }
         break;
       default:
@@ -173,8 +170,8 @@ class _CameraViewState extends State<CameraView> with WidgetsBindingObserver {
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    cameraController.dispose();
+    WidgetsBinding.instance?.removeObserver(this);
+    cameraController?.dispose();
     super.dispose();
   }
 }

@@ -20,7 +20,7 @@ class Recognition {
   /// passed for inference
   final Rect _location;
 
-  Recognition(this._id, this._label, this._score, [this._location]);
+  Recognition(this._id, this._label, this._score, this._location);
 
   int get id => _id;
 
@@ -39,7 +39,7 @@ class Recognition {
     // ratioX = screenWidth / imageInputWidth
     // ratioY = ratioX if image fits screenWidth with aspectRatio = constant
 
-    double ratioX = CameraViewSingleton.ratio;
+    double ratioX = CameraViewSingleton.ratio!;
     double ratioY = ratioX;
 
     double transLeft = max(0.1, location.left * ratioX);

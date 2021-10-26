@@ -5,7 +5,7 @@ class Stats {
 
   /// [totalPredictTime] + communication overhead time
   /// between main isolate and another isolate
-  int totalElapsedTime;
+  int? totalElapsedTime;
 
   /// Time for which inference runs
   int inferenceTime;
@@ -14,10 +14,10 @@ class Stats {
   int preProcessingTime;
 
   Stats(
-      {this.totalPredictTime,
+      {required this.totalPredictTime,
       this.totalElapsedTime,
-      this.inferenceTime,
-      this.preProcessingTime});
+      required this.inferenceTime,
+      required this.preProcessingTime});
 
   @override
   String toString() {
