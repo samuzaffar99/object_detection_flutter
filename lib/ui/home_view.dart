@@ -28,7 +28,7 @@ class _HomeViewState extends State<HomeView> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: scaffoldKey,
-      backgroundColor: Colors.black,
+      // backgroundColor: Colors.black,
       appBar: AppBar(title: const Text('Object Detection Flutter')),
       body: Stack(
         children: <Widget>[

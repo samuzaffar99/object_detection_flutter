@@ -1,7 +1,9 @@
+import 'dart:convert';
 import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image/image.dart' as image_lib;
 import 'package:object_detection/tflite/recognition.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
@@ -24,7 +26,7 @@ class Classifier {
   static const int INPUT_SIZE = 320;
 
   /// Result score threshold
-  static const double THRESHOLD = 0.6;
+  static const double THRESHOLD = 0.35;
 
   /// [ImageProcessor] used to pre-process the image
   ImageProcessor imageProcessor;
@@ -73,12 +75,26 @@ class Classifier {
     }
   }
 
+  Future<void> loadClasses() async {
+    String data = await rootBundle.loadString('assets/classes.txt');
+    _classes = LineSplitter.split(data).toList();
+    print(_classes);
+    return;
+  }
+
+  List<String> _classes;
+
   /// Loads labels from assets
   void loadLabels({List<String> labels}) async {
     try {
       _labels =
           labels ?? await FileUtil.loadLabels("assets/" + LABEL_FILE_NAME);
-      // print(_labels);
+      await loadClasses();
+      for (int i = 0; i < _labels.length; i++) {
+        if (!_classes.contains(_labels[i])) {
+          _labels[i] = "?";
+        }
+      }
     } catch (e) {
       print("Error while loading labels: $e");
     }
@@ -122,21 +138,18 @@ class Classifier {
     TensorBuffer numLocations = TensorBufferFloat(_outputShapes[3]);
 
     // print(outputLocations.shape);
-    // // print(outputClassScores.shape);
     // print(outputClasses.shape);
     // print(outputScores.shape);
     // print(numLocations.shape);
     // print(_interpreter.getInputTensors());
     // print(_interpreter.getOutputTensors());
+
     // Inputs object for runForMultipleInputs
     // Use [TensorImage.buffer] or [TensorBuffer.buffer] to pass by reference
-
     List<Object> inputs = [inputImage.buffer];
 
     // Outputs map
     Map<int, Object> outputs = {
-      // 6: outputLocations.buffer,
-      // 7: outputClassScores.buffer,
       0: outputLocations.buffer,
       1: outputClasses.buffer,
       2: outputScores.buffer,
@@ -159,6 +172,9 @@ class Classifier {
     // Maximum number of results to show
     int resultsCount = min(NUM_RESULTS, numLocations.getIntValue(0));
     // int resultsCount = NUM_RESULTS;
+    // int resultsCount = numLocations.getIntValue(0);
+    print(resultsCount);
+
     // Using labelOffset = 1 as ??? at index 0
     int labelOffset = -1;
 
@@ -178,30 +194,26 @@ class Classifier {
     for (int i = 0; i < resultsCount; i++) {
       // Prediction score
       var score = outputScores.getDoubleValue(i);
-      // List<double> scoreList = (outputClassScores.getDoubleList().reshape([12804,13]))[i].cast<double>();
-      // print(scoreList.length);
-      // print(scoreList);
-      // print(scoreList.runtimeType);
 
-      // double score = scoreList.reduce(max);
-      print(score);
-
-      // Label string
-      var labelIndex = outputClasses.getIntValue(i) + labelOffset;
-      print(labelIndex);
-      //   var labelIndex = scoreList.indexOf(score);
-      var label = _labels.elementAt(labelIndex);
-      print(label);
       if (score > THRESHOLD) {
-        // inverse of rect
-        // [locations] corresponds to the image size 300 X 300
-        // inverseTransformRect transforms it our [inputImage]
-        Rect transformedRect = imageProcessor.inverseTransformRect(
-            locations[i], image.height, image.width);
+        print(score);
+        // Label string
+        var labelIndex = outputClasses.getIntValue(i) + labelOffset;
+        print(labelIndex);
 
-        recognitions.add(
-          Recognition(i, label, score, transformedRect),
-        );
+        var label = _labels.elementAt(labelIndex);
+        print(label);
+        if (label != "?") {
+          // inverse of rect
+          // [locations] corresponds to the image size 300 X 300
+          // inverseTransformRect transforms it our [inputImage]
+          Rect transformedRect = imageProcessor.inverseTransformRect(
+              locations[i], image.height, image.width);
+
+          recognitions.add(
+            Recognition(i, label, score, transformedRect),
+          );
+        }
       }
     }
 

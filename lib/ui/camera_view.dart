@@ -55,7 +55,7 @@ class _CameraViewState extends State<CameraView> with WidgetsBindingObserver {
 
     // Camera initialization
     initializeCamera();
-
+    print("rebuild state");
     // Create an instance of classifier to load model and labels
     classifier = Classifier();
 
@@ -68,9 +68,9 @@ class _CameraViewState extends State<CameraView> with WidgetsBindingObserver {
     cameras = await availableCameras();
     // cameras[0] for rear-camera
 
-    cameraController = CameraController(cameras[0], ResolutionPreset.medium,
-        enableAudio: false);
-    // await Future.delayed(const Duration(milliseconds : 200));
+    cameraController =
+        CameraController(cameras[0], ResolutionPreset.high, enableAudio: false);
+
     cameraController.initialize().then((_) async {
       await Future.delayed(const Duration(milliseconds: 200));
       // Stream of image passed to [onLatestImageAvailable] callback
@@ -102,9 +102,7 @@ class _CameraViewState extends State<CameraView> with WidgetsBindingObserver {
         child: const Text("No Camera"),
       );
     }
-    return AspectRatio(
-        aspectRatio: cameraController.value.aspectRatio,
-        child: CameraPreview(cameraController));
+    return CameraPreview(cameraController);
   }
 
   /// Callback to receive each frame [CameraImage] perform inference on it

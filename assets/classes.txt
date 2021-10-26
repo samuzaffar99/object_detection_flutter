@@ -1,0 +1,14 @@
+Fountain
+Palm tree
+Flower
+Swimming pool
+Bench
+Building
+Wheelchair
+Flag
+Table
+Stairs
+Chair
+Tent
+Street light
+Traffic sign
