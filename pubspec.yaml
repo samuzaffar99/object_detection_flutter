@@ -25,18 +25,15 @@ dependencies:
     sdk: flutter
 
 
-  camera: ^0.9.0
+  camera: ^0.9.4+5
 #  tflite_flutter: ^0.9.0
 #  tflite_flutter_helper: ^0.3.0
-  tflite_flutter:
-    git:
-      url: git://github.com/cpoohee/tflite_flutter_plugin
   tflite_flutter_helper:
     git:
       url: git://github.com/Puspharaj/tflite_flutter_helper
-  image: ^3.0.8
-  path_provider: ^2.0.5
-  image_picker: ^0.8.4+3
+  image: ^3.1.0
+  path_provider: ^2.0.8
+  image_picker: ^0.8.4+4
 
 dependency_overrides:
   tflite_flutter:
@@ -46,7 +43,7 @@ dependency_overrides:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^1.0.0
+  flutter_lints: ^1.0.4
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
@@ -61,6 +58,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/
+    - assets/efficientnet/
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 
