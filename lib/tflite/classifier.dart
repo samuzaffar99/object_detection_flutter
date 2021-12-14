@@ -15,14 +15,21 @@ import 'stats.dart';
 class Classifier {
   /// Instance of Interpreter
   Interpreter? _interpreter;
+  final gpuDelegateV2 = GpuDelegateV2(
+      options: GpuDelegateOptionsV2(
+        // false,
+        // TfLiteGpuInferenceUsage.fastSingleAnswer,
+        // TfLiteGpuInferencePriority.minLatency,
+        // TfLiteGpuInferencePriority.auto,
+        // TfLiteGpuInferencePriority.auto,
+      ));
+
+  var interpreterOptions = InterpreterOptions()..addDelegate(GpuDelegateV2());
 
   /// Labels file loaded as list
   List<String>? _labels;
 
-  // static const String modelFileName = "ssd_mobilenetv2.tflite";
-  // static const String labelFileName = "ssd_mobilenetv2.txt";
-
-  static const String modelFileName = "efficientnet/quantized_uint8.tflite";
+  static const String modelFileName = "efficientnet/EfficientNetUint8.tflite";
   static const String labelFileName = "efficientnet/Classes.txt";
 
   /// Input size of image (height = width = 300)
@@ -60,9 +67,9 @@ class Classifier {
       // print("try load interpreter");
       _interpreter = interpreter ??
           await Interpreter.fromAsset(modelFileName,
-              options: InterpreterOptions()..threads = 4
-              // ..useFlexDelegateAndroid = true,
-              );
+              options: interpreterOptions
+            // ..useFlexDelegateAndroid = true,
+          );
       // print("loaded interpreter");
       var outputTensors = _interpreter!.getOutputTensors();
       _outputShapes = [];
@@ -91,9 +98,9 @@ class Classifier {
     imageProcessor ??= ImageProcessorBuilder()
         .add(ResizeWithCropOrPadOp(padSize!, padSize!))
         .add(ResizeOp(inputSize, inputSize, ResizeMethod.BILINEAR))
-        // .add(NormalizeOp(127.5, 127.5))
-        // .add(DequantizeOp(128.0, 1 / 128.0))
-        // .add(QuantizeOp(0,1))
+    // .add(NormalizeOp(127.5, 127.5))
+    // .add(DequantizeOp(128.0, 1 / 128.0))
+    // .add(QuantizeOp(0,1))
         .build();
     inputImage = imageProcessor!.process(inputImage);
     return inputImage;
@@ -180,18 +187,25 @@ class Classifier {
     if (score > threshold) {
       print(score);
       // Using labelOffset = 1 as ??? at index 0
-      int labelOffset = 1;
+      int labelOffset = 0;
       // Label string
       var labelIndex = maxIndex + labelOffset;
       print(labelIndex);
-      final labels = [
-        'Awning', 'Basketball Court', 'Bicycle' ,'Bicycle Stand', 'Broad Walk' ,'Bush',
-        'Electric Scooter' ,'Garbage Bin' ,'Golf cart' ,'Gym Equipment', 'Lamp Post',
-        'Lifeguard', 'Rail', 'Recycling Area', 'Sign Board', 'Washroom Toilet (Male)',
-        'Washroom Toilet (Female)', 'beach chair' ,'bench' ,'boat' 'building',
-        'chair', 'flag with pole' ,'flower', 'grass', 'palm tree', 'play area',
-        'shower', 'stairs' ,'table', 'tree' ,'umbrella'
-      ];
+      final labels = ['Bicycle',
+        'Bicycle Stand',
+        'Electric Scooter',
+        'Golf cart',
+        'Gym Equipment',
+        'Sign Board',
+        'bench',
+        'boat',
+        'building',
+        'chair',
+        'flower',
+        'palm tree',
+        'stairs',
+        'table',
+        'tree'];
       // var label = _labels!.elementAt(labelIndex);
       var label = labels.elementAt(labelIndex);
       print(label);
