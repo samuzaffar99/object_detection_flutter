@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
+import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -19,7 +20,7 @@ class Classifier {
   /// Labels file loaded as list
   List<String>? _labels;
 
-  static const String modelFileName = "efficientnet/EfficientNetUint8.tflite";
+  static const String modelFileName = "efficientnet/EfficientNet34Classes-1.tflite";
   static const String labelFileName = "efficientnet/Classes.txt";
 
   /// Input size of image (height = width = 300)
@@ -48,6 +49,22 @@ class Classifier {
     loadLabels(labels: labels);
   }
 
+  Uint8List imageToByteListFloat32(
+      image_lib.Image image, int inputSize, double mean, double std) {
+    var convertedBytes = Float32List(1 * inputSize * inputSize * 3);
+    var buffer = Float32List.view(convertedBytes.buffer);
+    int pixelIndex = 0;
+    for (var i = 0; i < inputSize; i++) {
+      for (var j = 0; j < inputSize; j++) {
+        var pixel = image.getPixel(j, i);
+        buffer[pixelIndex++] = (image_lib.getRed(pixel) - mean) / std;
+        buffer[pixelIndex++] = (image_lib.getGreen(pixel) - mean) / std;
+        buffer[pixelIndex++] = (image_lib.getBlue(pixel) - mean) / std;
+      }
+    }
+    return convertedBytes.buffer.asUint8List();
+  }
+
   /// Loads interpreter from asset
   void loadModel({Interpreter? interpreter}) async {
     try {
@@ -64,8 +81,8 @@ class Classifier {
       );
       InterpreterOptions interpreterOptions = InterpreterOptions()
         ..threads = 4
-        // ..useNnApiForAndroid = true
-        ..addDelegate(gpuDelegateV2)
+        ..useNnApiForAndroid = true
+        // ..addDelegate(gpuDelegateV2)
       ;
       _interpreter = interpreter ??
           await Interpreter.fromAsset(
@@ -121,6 +138,7 @@ class Classifier {
     var preProcessStart = DateTime.now().millisecondsSinceEpoch;
 
     // Create TensorImage from image
+    // image = image_lib.decodeImage(imageToByteListFloat32(image, 224, 127.5, 1))!;
     TensorImage inputImage = TensorImage.fromImage(image);
 
     // Pre-process TensorImage
