@@ -20,7 +20,8 @@ class Classifier {
   /// Labels file loaded as list
   List<String>? _labels;
 
-  static const String modelFileName = "efficientnet/EfficientNet34Classes-1.tflite";
+  static const String modelFileName =
+      "efficientnet/EfficientNet34Classes.tflite";
   static const String labelFileName = "efficientnet/Classes.txt";
 
   /// Input size of image (height = width = 300)
@@ -49,41 +50,25 @@ class Classifier {
     loadLabels(labels: labels);
   }
 
-  Uint8List imageToByteListFloat32(
-      image_lib.Image image, int inputSize, double mean, double std) {
-    var convertedBytes = Float32List(1 * inputSize * inputSize * 3);
-    var buffer = Float32List.view(convertedBytes.buffer);
-    int pixelIndex = 0;
-    for (var i = 0; i < inputSize; i++) {
-      for (var j = 0; j < inputSize; j++) {
-        var pixel = image.getPixel(j, i);
-        buffer[pixelIndex++] = (image_lib.getRed(pixel) - mean) / std;
-        buffer[pixelIndex++] = (image_lib.getGreen(pixel) - mean) / std;
-        buffer[pixelIndex++] = (image_lib.getBlue(pixel) - mean) / std;
-      }
-    }
-    return convertedBytes.buffer.asUint8List();
-  }
-
   /// Loads interpreter from asset
   void loadModel({Interpreter? interpreter}) async {
     try {
       // print("try load interpreter");
       final gpuDelegateV2 = GpuDelegateV2(
         options: GpuDelegateOptionsV2(
-            isPrecisionLossAllowed: true,
-            // TfLiteGpuInferenceUsage.fastSingleAnswer,
-            // TfLiteGpuInferencePriority.minLatency,
-            // TfLiteGpuInferencePriority.auto,
-            // TfLiteGpuInferencePriority.auto,
-            // experimentalFlags: const [TfLiteGpuExperimentalFlags.none],
-            ),
+          isPrecisionLossAllowed: true,
+          // TfLiteGpuInferenceUsage.fastSingleAnswer,
+          // TfLiteGpuInferencePriority.minLatency,
+          // TfLiteGpuInferencePriority.auto,
+          // TfLiteGpuInferencePriority.auto,
+          // experimentalFlags: const [TfLiteGpuExperimentalFlags.none],
+        ),
       );
       InterpreterOptions interpreterOptions = InterpreterOptions()
-        ..threads = 4
-        ..useNnApiForAndroid = true
-        // ..addDelegate(gpuDelegateV2)
-      ;
+            ..threads = 4
+            ..useNnApiForAndroid = true
+          // ..addDelegate(gpuDelegateV2)
+          ;
       _interpreter = interpreter ??
           await Interpreter.fromAsset(
             modelFileName,
@@ -139,8 +124,8 @@ class Classifier {
 
     // Create TensorImage from image
     // image = image_lib.decodeImage(imageToByteListFloat32(image, 224, 127.5, 1))!;
-    TensorImage inputImage = TensorImage.fromImage(image);
-
+    // TensorImage inputImage = TensorImage.fromImage(image);
+    TensorImage inputImage = TensorImage(TfLiteType.float32)..loadImage(image);
     // Pre-process TensorImage
     try {
       inputImage = getProcessedImage(inputImage);
@@ -166,16 +151,13 @@ class Classifier {
     // print(inputs);
     // print(outputs);
 
-    // print(inputImage.tensorBuffer);
-
-    // print("check1");
     // run inference
     try {
       _interpreter!.runForMultipleInputs(inputs, outputs);
     } on Exception catch (e) {
       print(e);
     }
-    // print("pass");
+
     var inferenceTimeElapsed =
         DateTime.now().millisecondsSinceEpoch - inferenceTimeStart;
 
@@ -192,21 +174,40 @@ class Classifier {
       print(labelIndex);
 
       final labels = [
-        'Bicycle',
-        'Bicycle Stand',
-        'Electric Scooter',
-        'Golf cart',
-        'Gym Equipment',
-        'Sign Board',
-        'bench',
-        'boat',
-        'building',
-        'chair',
-        'flower',
-        'palm tree',
-        'stairs',
-        'table',
-        'tree',
+        " Awning ",
+        " Basketball Court ",
+        " Bicycle ",
+        " Bicycle Stand ",
+        " Broad Walk ",
+        " Bush ",
+        " Electric Scooter ",
+        " Garbage Bin ",
+        " Golf cart ",
+        " Gym Equipment ",
+        " Lamp Post ",
+        " Lifeguard ",
+        " Rail ",
+        " Recycling Area ",
+        " Sign Board ",
+        " Wahsroom Toilet (Male) ",
+        " Washroom Toilet (Female) ",
+        " beach chair ",
+        " bench ",
+        " boat ",
+        " building ",
+        " chair ",
+        " cycle track ",
+        " flag with pole ",
+        " flower ",
+        " grass ",
+        " palm tree ",
+        " play area ",
+        " sea ",
+        " shower ",
+        " stairs ",
+        " table ",
+        " tree ",
+        " umbrella "
       ];
       // var label = _labels!.elementAt(labelIndex);
       var label = labels.elementAt(labelIndex);
