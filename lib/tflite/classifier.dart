@@ -15,16 +15,6 @@ import 'stats.dart';
 class Classifier {
   /// Instance of Interpreter
   Interpreter? _interpreter;
-  final gpuDelegateV2 = GpuDelegateV2(
-      options: GpuDelegateOptionsV2(
-        // false,
-        // TfLiteGpuInferenceUsage.fastSingleAnswer,
-        // TfLiteGpuInferencePriority.minLatency,
-        // TfLiteGpuInferencePriority.auto,
-        // TfLiteGpuInferencePriority.auto,
-      ));
-
-  var interpreterOptions = InterpreterOptions()..addDelegate(GpuDelegateV2());
 
   /// Labels file loaded as list
   List<String>? _labels;
@@ -50,9 +40,6 @@ class Classifier {
   /// Types of output tensors
   List<TfLiteType> _outputTypes = [];
 
-  /// Number of results to show
-  static const int numResults = 10;
-
   Classifier({
     Interpreter? interpreter,
     List<String>? labels,
@@ -65,9 +52,25 @@ class Classifier {
   void loadModel({Interpreter? interpreter}) async {
     try {
       // print("try load interpreter");
+      final gpuDelegateV2 = GpuDelegateV2(
+        options: GpuDelegateOptionsV2(
+            isPrecisionLossAllowed: true,
+            // TfLiteGpuInferenceUsage.fastSingleAnswer,
+            // TfLiteGpuInferencePriority.minLatency,
+            // TfLiteGpuInferencePriority.auto,
+            // TfLiteGpuInferencePriority.auto,
+            // experimentalFlags: const [TfLiteGpuExperimentalFlags.none],
+            ),
+      );
+      InterpreterOptions interpreterOptions = InterpreterOptions()
+        ..threads = 4
+        // ..useNnApiForAndroid = true
+        ..addDelegate(gpuDelegateV2)
+      ;
       _interpreter = interpreter ??
-          await Interpreter.fromAsset(modelFileName,
-              options: interpreterOptions
+          await Interpreter.fromAsset(
+            modelFileName,
+            options: interpreterOptions,
             // ..useFlexDelegateAndroid = true,
           );
       // print("loaded interpreter");
@@ -98,9 +101,9 @@ class Classifier {
     imageProcessor ??= ImageProcessorBuilder()
         .add(ResizeWithCropOrPadOp(padSize!, padSize!))
         .add(ResizeOp(inputSize, inputSize, ResizeMethod.BILINEAR))
-    // .add(NormalizeOp(127.5, 127.5))
-    // .add(DequantizeOp(128.0, 1 / 128.0))
-    // .add(QuantizeOp(0,1))
+        // .add(NormalizeOp(127.5, 127.5))
+        // .add(DequantizeOp(128.0, 1 / 128.0))
+        // .add(QuantizeOp(0,1))
         .build();
     inputImage = imageProcessor!.process(inputImage);
     return inputImage;
@@ -129,17 +132,10 @@ class Classifier {
 
     var preProcessElapsedTime =
         DateTime.now().millisecondsSinceEpoch - preProcessStart;
+
     // TensorBuffers for output tensors
     TensorBuffer outputScores = TensorBufferFloat(_outputShapes[0]);
 
-    // print(outputScores.shape);
-    // print(_interpreter!.getInputTensors());
-    // QuantizationParams inputParams = interpreter!.getInputTensor(0).params;
-    // print(inputParams.toString());
-    // print(_interpreter!.getOutputTensors());
-    // QuantizationParams outputParams = interpreter!.getOutputTensor(0).params;
-    // print(outputParams.toString());
-    // Inputs object for runForMultipleInputs
     // Use [TensorImage.buffer] or [TensorBuffer.buffer] to pass by reference
     List<Object> inputs = [inputImage.buffer];
 
@@ -165,22 +161,8 @@ class Classifier {
     var inferenceTimeElapsed =
         DateTime.now().millisecondsSinceEpoch - inferenceTimeStart;
 
-    // Using bounding box utils for easy conversion of tensorbuffer to List<Rect>
-    // List<Rect> locations = BoundingBoxUtils.convert(
-    //   tensor: outputLocations,
-    //   valueIndex: [1, 0, 3, 2],
-    //   boundingBoxAxis: 2,
-    //   boundingBoxType: BoundingBoxType.BOUNDARIES,
-    //   coordinateType: CoordinateType.RATIO,
-    //   height: inputSize,
-    //   width: inputSize,
-    // );
-    // print("converted bounding boxes");
     List<Recognition> recognitions = [];
     final List<double> scoreList = outputScores.getDoubleList();
-    // for (var element in scoreList) {
-    //   print(element);
-    // }
 
     final int maxIndex = scoreList.indexOf(scoreList.reduce(max));
     final double score = scoreList[maxIndex];
@@ -188,10 +170,11 @@ class Classifier {
       print(score);
       // Using labelOffset = 1 as ??? at index 0
       int labelOffset = 0;
-      // Label string
       var labelIndex = maxIndex + labelOffset;
       print(labelIndex);
-      final labels = ['Bicycle',
+
+      final labels = [
+        'Bicycle',
         'Bicycle Stand',
         'Electric Scooter',
         'Golf cart',
@@ -205,19 +188,14 @@ class Classifier {
         'palm tree',
         'stairs',
         'table',
-        'tree'];
+        'tree',
+      ];
       // var label = _labels!.elementAt(labelIndex);
       var label = labels.elementAt(labelIndex);
       print(label);
       if (label != "?") {
-        // inverse of rect
-        // [locations] corresponds to the image size 300 X 300
-        // inverseTransformRect transforms it our [inputImage]
         Rect transformedRect = Rect.fromCenter(
             center: const Offset(0, 0), width: 240, height: 240);
-        // Rect transformedRect = imageProcessor!
-        //     .inverseTransformRect([locations[i]], image.height, image.width);
-
         recognitions.add(
           Recognition(maxIndex, label, score, transformedRect),
         );
